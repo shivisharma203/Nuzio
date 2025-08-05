@@ -6,5 +6,31 @@
     <string name="fb_login_protocol_scheme">1240593017808911</string>
     <string name="facebook_client_token">faad828de3378812418b1f8f383ca55d</string>
 
+    <string name="login_title">Login to your Nuzio account</string>
+    <string name="signup_title">Create an Account</string>
 
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+
+    <string name="login">Login</string>
+    <string name="signup">Sign Up</string>
+
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="prompt_signup">Don\'t have an account? Sign Up</string>
+    <string name="prompt_login">Already have an account? Login</string>
+
+    <string name="error_email_password_required">Email and Password are required.</string>
+    <string name="login_failed">Login Failed: %1$s</string>
+    <string name="signup_failed">Signup Failed: %1$s</string>
+
+    <string name="continue_with_google">Continue with Google</string>
+    <string name="continue_with_facebook">Continue with Facebook</string>
+
+    <string name="forgot_password_title">Forgot Password?</string>
+    <string name="forgot_password_instruction">Enter your email to receive a password reset link.</string>
+    <string name="send_reset_email">Send Reset Email</string>
+    <string name="cancel">Cancel</string>
+
+    <string name="reset_email_sent">Reset link sent</string>
+    <string name="failed">Failed</string>
 </resources>

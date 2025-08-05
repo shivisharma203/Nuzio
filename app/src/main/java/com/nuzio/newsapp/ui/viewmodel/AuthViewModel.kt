@@ -10,19 +10,32 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FacebookAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 
+/**
+ * ViewModel for handling user authentication logic using Firebase Auth,
+ * Google Sign-In, and Facebook Login.
+ *
+ * It exposes sign-in state as [StateFlow] and provides methods to
+ * sign up, login, logout, reset password, and sign in with social providers.
+ *
+ * @param application Application context required for GoogleSignInClient.
+ */
 class AuthViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val TAG = "AuthViewModel"
 
     private val context = getApplication<Application>().applicationContext
     private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
 
+    // Tracks if user is currently signed in
     private val _isSignedIn = MutableStateFlow(firebaseAuth.currentUser != null)
     val isSignedIn: StateFlow<Boolean> = _isSignedIn.asStateFlow()
 
+    // Listener to update signed-in state when auth state changes
     private val authStateListener = FirebaseAuth.AuthStateListener { auth ->
         _isSignedIn.value = auth.currentUser != null
     }
@@ -36,45 +49,58 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         firebaseAuth.removeAuthStateListener(authStateListener)
     }
 
+    /**
+     * Signs out the currently logged-in user from Firebase,
+     * and also logs out from Facebook and Google if applicable.
+     */
     fun signOut() {
         viewModelScope.launch {
             try {
                 val currentUser = firebaseAuth.currentUser
                 val providerId = currentUser?.providerData?.getOrNull(1)?.providerId
 
-                Log.d("SignOut", "Current provider: $providerId")
+                Log.d(TAG, "Current provider: $providerId")
 
-                // Firebase sign out
+                // Sign out from Firebase
                 firebaseAuth.signOut()
 
-                // Facebook logout
+                // Facebook logout if user signed in via Facebook
                 if (providerId == FacebookAuthProvider.PROVIDER_ID) {
                     LoginManager.getInstance().logOut()
+                    Log.d(TAG, "Logged out from Facebook")
                 }
 
-                // Google logout
+                // Google logout if user signed in via Google
                 if (providerId == GoogleAuthProvider.PROVIDER_ID) {
                     val googleSignInClient = GoogleSignIn.getClient(
                         context,
                         GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                            .requestIdToken("AIzaSyCdv_lejFLZ40P3m5KkgrsmRKJI5_XH3BI") // Replace with your real web client ID
+                            // TODO: Replace with your real Web client ID from Firebase console
+                            .requestIdToken("AIzaSyCdv_lejFLZ40P3m5KkgrsmRKJI5_XH3BI")
                             .requestEmail()
                             .build()
                     )
-                    googleSignInClient.signOut()
+                    googleSignInClient.signOut().addOnCompleteListener {
+                        Log.d(TAG, "Logged out from Google")
+                    }
                 }
 
-                Log.d("AuthViewModel", "✅ Successfully signed out")
+                Log.d(TAG, "✅ Successfully signed out")
+
             } catch (e: Exception) {
-                Log.e("AuthViewModel", "❌ Sign out failed: ${e.localizedMessage}", e)
+                Log.e(TAG, "❌ Sign out failed: ${e.localizedMessage}", e)
             }
         }
     }
 
-    // -------------------------
-    // Existing methods unchanged
-    // -------------------------
-
+    /**
+     * Signs up a new user using email and password.
+     *
+     * @param email User's email address.
+     * @param password User's password.
+     * @param onSuccess Callback invoked on successful signup.
+     * @param onError Callback invoked with an Exception if signup fails.
+     */
     fun signUpWithEmail(
         email: String,
         password: String,
@@ -88,6 +114,14 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             }
     }
 
+    /**
+     * Logs in an existing user using email and password.
+     *
+     * @param email User's email address.
+     * @param password User's password.
+     * @param onSuccess Callback invoked on successful login.
+     * @param onError Callback invoked with an Exception if login fails.
+     */
     fun loginWithEmail(
         email: String,
         password: String,
@@ -101,6 +135,13 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             }
     }
 
+    /**
+     * Sends a password reset email to the given email address.
+     *
+     * @param email Email address to send the reset link.
+     * @param onSuccess Callback invoked when email is successfully sent.
+     * @param onError Callback invoked with an Exception if sending fails.
+     */
     fun sendPasswordResetEmail(
         email: String,
         onSuccess: () -> Unit,
@@ -113,6 +154,13 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             }
     }
 
+    /**
+     * Signs in user with Google credentials.
+     *
+     * @param idToken Google ID token from GoogleSignInClient.
+     * @param onSuccess Callback invoked on successful sign-in.
+     * @param onError Callback invoked with an Exception if sign-in fails.
+     */
     fun signInWithGoogle(idToken: String, onSuccess: () -> Unit, onError: (Exception) -> Unit) {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         firebaseAuth.signInWithCredential(credential)
@@ -122,28 +170,35 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             }
     }
 
+    /**
+     * Signs in user with Facebook credentials.
+     *
+     * @param accessToken Facebook access token.
+     * @param onSuccess Callback invoked on successful sign-in.
+     * @param onError Callback invoked with an Exception if sign-in fails.
+     */
     fun signInWithFacebook(
         accessToken: String,
         onSuccess: () -> Unit,
         onError: (Exception) -> Unit
     ) {
         val credential = FacebookAuthProvider.getCredential(accessToken)
-
-        FirebaseAuth.getInstance().signInWithCredential(credential)
+        firebaseAuth.signInWithCredential(credential)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    Log.d("FacebookLogin", "signInWithFacebook:success")
+                    Log.d(TAG, "Facebook sign-in successful")
                     onSuccess()
                 } else {
-                    Log.e("FacebookLogin", "signInWithFacebook:failure", task.exception)
+                    Log.e(TAG, "Facebook sign-in failed", task.exception)
                     onError(task.exception ?: Exception("Unknown Facebook sign-in error"))
                 }
             }
     }
 
-
+    /** Returns true if a user is currently signed in. */
     fun isUserSignedIn(): Boolean = firebaseAuth.currentUser != null
 
+    /** Manually update the isSignedIn StateFlow based on current user state. */
     fun checkCurrentUser() {
         _isSignedIn.value = firebaseAuth.currentUser != null
     }
