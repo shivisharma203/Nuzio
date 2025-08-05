@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "903578833126",
+    "project_id": "nuzio-947e8",
+    "storage_bucket": "nuzio-947e8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:903578833126:android:8ef84bcb4a53244df16b27",
+        "android_client_info": {
+          "package_name": "com.nuzio.newsapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "903578833126-74fc8m8ju2eduqaq6u57nn9voemcj6a0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.nuzio.newsapp",
+            "certificate_hash": "5e462b1180ec75c5ef93fa370ef3cfe5d5c51649"
+          }
+        },
+        {
+          "client_id": "903578833126-t4d7c11ilonjb68ta94q6nn3npe0v1e9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCdv_lejFLZ40P3m5KkgrsmRKJI5_XH3BI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "903578833126-t4d7c11ilonjb68ta94q6nn3npe0v1e9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

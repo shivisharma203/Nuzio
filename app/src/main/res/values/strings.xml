@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Nuzio</string>
+    <string name="default_web_client_id">AIzaSyCdv_lejFLZ40P3m5KkgrsmRKJI5_XH3BI</string>
+
+    <string name="facebook_app_id">1240593017808911</string>
+    <string name="fb_login_protocol_scheme">1240593017808911</string>
+    <string name="facebook_client_token">faad828de3378812418b1f8f383ca55d</string>
+
+
+</resources>
