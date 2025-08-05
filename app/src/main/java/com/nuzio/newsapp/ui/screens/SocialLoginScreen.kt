@@ -1,18 +1,18 @@
 package com.nuzio.newsapp.ui.screens
 
 import android.app.Activity
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.facebook.CallbackManager
@@ -25,7 +25,11 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.nuzio.newsapp.R
 import com.nuzio.newsapp.ui.viewmodel.AuthViewModel
+import androidx.compose.material3.MaterialTheme
 
+/**
+ * Main social login screen supporting email/password, Google, and Facebook login.
+ */
 @Composable
 fun SocialLoginScreen(
     facebookCallbackManager: CallbackManager,
@@ -35,6 +39,7 @@ fun SocialLoginScreen(
     val context = LocalContext.current
     val activity = context as? Activity
 
+    // State variables for form fields, UI state, and errors
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isLoginMode by remember { mutableStateOf(true) }
@@ -42,7 +47,7 @@ fun SocialLoginScreen(
     var currentErrorMessage by remember { mutableStateOf<String?>(null) }
     var showForgotDialog by remember { mutableStateOf(false) }
 
-    // Facebook callback registration
+    // Combine Facebook callback registration and signed-in check in one effect
     LaunchedEffect(Unit) {
         LoginManager.getInstance().registerCallback(facebookCallbackManager,
             object : FacebookCallback<LoginResult> {
@@ -70,15 +75,14 @@ fun SocialLoginScreen(
                 }
             }
         )
-    }
 
-    // Check if already signed in
-    LaunchedEffect(Unit) {
+        // Check user already signed in
         if (authViewModel.isUserSignedIn()) {
             onSignInSuccess()
         }
     }
 
+    // Google sign-in launcher and handler
     val googleSignInLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -104,6 +108,7 @@ fun SocialLoginScreen(
         }
     }
 
+    // Main UI layout
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -112,38 +117,30 @@ fun SocialLoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = if (isLoginMode) "Login with Email" else "Create an Account",
+            text = if (isLoginMode) stringResource(R.string.login_title) else stringResource(R.string.signup_title),
             style = MaterialTheme.typography.headlineSmall
         )
 
         Spacer(Modifier.height(16.dp))
 
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth()
-        )
+        // Email input field
+        EmailField(value = email, onValueChange = { email = it })
 
         Spacer(Modifier.height(8.dp))
 
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Password") },
-            modifier = Modifier.fillMaxWidth(),
-            visualTransformation = PasswordVisualTransformation()
-        )
+        // Password input field
+        PasswordField(value = password, onValueChange = { password = it })
 
         Spacer(Modifier.height(16.dp))
 
+        // Login/Signup button
         Button(
             onClick = {
                 isLoading = true
                 currentErrorMessage = null
 
                 if (email.isBlank() || password.isBlank()) {
-                    currentErrorMessage = "Email and Password are required."
+                    currentErrorMessage = context.getString(R.string.error_email_password_required)
                     isLoading = false
                     return@Button
                 }
@@ -157,7 +154,7 @@ fun SocialLoginScreen(
                         },
                         onError = { e ->
                             isLoading = false
-                            currentErrorMessage = "Login Failed: ${e.message}"
+                            currentErrorMessage = context.getString(R.string.login_failed, e.message)
                         }
                     )
                 } else {
@@ -169,7 +166,7 @@ fun SocialLoginScreen(
                         },
                         onError = { e ->
                             isLoading = false
-                            currentErrorMessage = "Signup Failed: ${e.message}"
+                            currentErrorMessage = context.getString(R.string.signup_failed, e.message)
                         }
                     )
                 }
@@ -177,27 +174,34 @@ fun SocialLoginScreen(
             modifier = Modifier.fillMaxWidth(),
             enabled = !isLoading
         ) {
-            Text(if (isLoginMode) "Login" else "Sign Up")
+            Text(if (isLoginMode) stringResource(R.string.login) else stringResource(R.string.signup))
         }
 
+        // Forgot password button
         TextButton(onClick = { showForgotDialog = true }) {
-            Text("Forgot Password?")
+            Text(stringResource(R.string.forgot_password))
         }
 
+        // Toggle between login/signup modes
         TextButton(onClick = { isLoginMode = !isLoginMode }) {
-            Text(if (isLoginMode) "Don't have an account? Sign Up" else "Already have an account? Login")
+            Text(
+                if (isLoginMode) stringResource(R.string.prompt_signup)
+                else stringResource(R.string.prompt_login)
+            )
         }
 
         Spacer(Modifier.height(8.dp))
 
+        // Display error message if any
         currentErrorMessage?.let {
             Text(it, color = MaterialTheme.colorScheme.error)
         }
 
         Divider(Modifier.padding(vertical = 16.dp))
 
-        // --- Google Sign-In Button ---
-        Button(
+        // Google login button
+        GoogleLoginButton(
+            isLoading = isLoading,
             onClick = {
                 isLoading = true
                 val options = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -206,34 +210,28 @@ fun SocialLoginScreen(
                     .build()
                 val client = GoogleSignIn.getClient(context, options)
                 googleSignInLauncher.launch(client.signInIntent)
-            },
-            enabled = !isLoading,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Continue with Google")
-        }
+            }
+        )
 
         Spacer(Modifier.height(8.dp))
 
-        // --- Facebook Sign-In Button ---
-        Button(
+        // Facebook login button
+        FacebookLoginButton(
+            isLoading = isLoading,
             onClick = {
                 currentErrorMessage = null
                 isLoading = true
-                if (activity != null) {
+                activity?.let {
                     LoginManager.getInstance().logInWithReadPermissions(
-                        activity,
+                        it,
                         listOf("email", "public_profile")
                     )
                 }
-            },
-            enabled = !isLoading,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Continue with Facebook")
-        }
+            }
+        )
     }
 
+    // Forgot password dialog
     if (showForgotDialog) {
         ForgotPasswordDialog(
             onDismiss = { showForgotDialog = false },
@@ -241,10 +239,10 @@ fun SocialLoginScreen(
                 authViewModel.sendPasswordResetEmail(
                     email = emailInput,
                     onSuccess = {
-                        Toast.makeText(context, "Reset link sent", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.reset_email_sent), Toast.LENGTH_SHORT).show()
                     },
                     onError = { e ->
-                        Toast.makeText(context, e.message ?: "Failed", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, e.message ?: context.getString(R.string.failed), Toast.LENGTH_SHORT).show()
                     }
                 )
             }
@@ -252,6 +250,98 @@ fun SocialLoginScreen(
     }
 }
 
+/**
+ * Email input field with Material3 theming and colors.
+ */
+@Composable
+fun EmailField(value: String, onValueChange: (String) -> Unit) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(stringResource(R.string.email)) },
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth(),
+       /* colors = TextFieldDefaults.outlinedTextFieldColors(
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            focusedLabelColor = MaterialTheme.colorScheme.primary
+        )*/
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewEmailField() {
+    EmailField(value = "", onValueChange = {})
+}
+
+/**
+ * Password input field with visual transformation and theming.
+ */
+@Composable
+fun PasswordField(value: String, onValueChange: (String) -> Unit) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(stringResource(R.string.password)) },
+        singleLine = true,
+        visualTransformation = PasswordVisualTransformation(),
+        modifier = Modifier.fillMaxWidth(),
+       /* colors = TextFieldDefaults.outlinedTextFieldColors(
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            focusedLabelColor = MaterialTheme.colorScheme.primary
+        )*/
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewPasswordField() {
+    PasswordField(value = "", onValueChange = {})
+}
+
+/**
+ * Button to initiate Google sign-in.
+ */
+@Composable
+fun GoogleLoginButton(isLoading: Boolean, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        enabled = !isLoading,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(stringResource(R.string.continue_with_google))
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewGoogleLoginButton() {
+    GoogleLoginButton(isLoading = false, onClick = {})
+}
+
+/**
+ * Button to initiate Facebook sign-in.
+ */
+@Composable
+fun FacebookLoginButton(isLoading: Boolean, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        enabled = !isLoading,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(stringResource(R.string.continue_with_facebook))
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewFacebookLoginButton() {
+    FacebookLoginButton(isLoading = false, onClick = {})
+}
+
+/**
+ * Forgot password dialog prompting for email input.
+ */
 @Composable
 fun ForgotPasswordDialog(
     onDismiss: () -> Unit,
@@ -262,31 +352,34 @@ fun ForgotPasswordDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
-            TextButton(onClick = {
-                onSendReset(email.trim())
-                onDismiss()
-            }) {
-                Text("Send Reset Email")
+            TextButton(
+                onClick = {
+                    onSendReset(email.trim())
+                    onDismiss()
+                },
+                enabled = email.isNotBlank()
+            ) {
+                Text(stringResource(R.string.send_reset_email))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.cancel))
             }
         },
-        title = { Text("Forgot Password?") },
+        title = { Text(stringResource(R.string.forgot_password_title)) },
         text = {
             Column {
-                Text("Enter your email to receive a password reset link.")
+                Text(stringResource(R.string.forgot_password_instruction))
                 Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    label = { Text("Email") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                EmailField(value = email, onValueChange = { email = it })
             }
         }
     )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewForgotPasswordDialog() {
+    ForgotPasswordDialog(onDismiss = {}, onSendReset = {})
 }
