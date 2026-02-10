@@ -41,4 +41,14 @@ interface NewsApiService {
         @Query("language") language: String = "en",
         @Query("sortBy") sortBy: String = "publishedAt"
     ): NewsResponseDto
+
+
+    @GET("v2/top-headlines")
+    suspend fun getCategoryArticles(
+        @Query("category") category: String,
+        @Query("country") country: String = "us",
+        @Query("apiKey") apiKey: String,
+        @Query("page") page: Int = 1,
+        @Query("pageSize") pageSize: Int = 20
+    ): NewsResponseDto  // Your existing response DTO
 }

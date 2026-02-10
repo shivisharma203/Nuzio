@@ -17,7 +17,8 @@ import com.nuzio.newsapp.domain.model.NewsArticle
 import com.nuzio.newsapp.features.auth.AuthScreen
 import com.nuzio.newsapp.features.auth.AuthViewModel
 import com.nuzio.newsapp.features.news.detail.NewsDetailScreen
-import com.nuzio.newsapp.features.screens.NewsListScreen
+import com.nuzio.newsapp.ui.screens.NewsListScreen
+
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json

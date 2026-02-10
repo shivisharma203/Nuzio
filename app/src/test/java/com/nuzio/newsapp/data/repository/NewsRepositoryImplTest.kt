@@ -7,6 +7,7 @@ import com.nuzio.newsapp.data.remote.NewsApiService
 import com.nuzio.newsapp.data.remote.dto.ArticleDto
 import com.nuzio.newsapp.data.remote.dto.NewsResponseDto
 import com.nuzio.newsapp.data.remote.dto.SourceDto
+import com.nuzio.newsapp.features.news.list.NewsSection
 import io.mockk.*
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
@@ -34,22 +35,22 @@ class NewsRepositoryImplTest {
    articles = listOf(createMockArticleDto())
   )
   coEvery { newsApi.getTopHeadlinesDto(any(), any()) } returns mockResponse
-  coEvery { newsDao.getAllNews() } returns emptyList()
+  coEvery { newsDao.getNewsBySection(any()) } returns emptyList()
 
-  val result = repository.getTopHeadlines("us", null)
+  val result = repository.getTopHeadlines(NewsSection.TECHNOLOGY, "us")
 
   assertTrue(result is Resource.Success)
   assertEquals(1, (result as Resource.Success).data.size)
-  coVerify { newsDao.clearAllNews() }
+  coVerify { newsDao.clearSection(NewsSection.TECHNOLOGY.name) }
   coVerify { newsDao.insertNews(any()) }
  }
 
  @Test
  fun `getTopHeadlines returns cached data when network fails and cache exists`() = runTest {
   coEvery { newsApi.getTopHeadlinesDto(any(), any()) } throws Exception("Network error")
-  coEvery { newsDao.getAllNews() } returns listOf(createMockEntity())
+  coEvery { newsDao.getNewsBySection(NewsSection.BUSINESS.name) } returns listOf(createMockEntity())
 
-  val result = repository.getTopHeadlines("us", null)
+  val result = repository.getTopHeadlines(NewsSection.BUSINESS, "us")
 
   assertTrue(result is Resource.Success)
   assertEquals(1, (result as Resource.Success).data.size)
@@ -58,42 +59,45 @@ class NewsRepositoryImplTest {
  @Test
  fun `getTopHeadlines returns error when network fails and no cache exists`() = runTest {
   coEvery { newsApi.getTopHeadlinesDto(any(), any()) } throws Exception("Network error")
-  coEvery { newsDao.getAllNews() } returns emptyList()
+  coEvery { newsDao.getNewsBySection(any()) } returns emptyList()
 
-  val result = repository.getTopHeadlines("us", null)
+  val result = repository.getTopHeadlines(NewsSection.SPORTS, "us")
 
   assertTrue(result is Resource.Error)
  }
 
  @Test
- fun `searchNews returns success when API call succeeds`() = runTest {
+ fun `getTopHeadlines uses correct API category for section`() = runTest {
   val mockResponse = NewsResponseDto(
    status = "ok",
-   totalResults = 1,
-   articles = listOf(createMockArticleDto())
+   totalResults = 0,
+   articles = emptyList()
   )
-  coEvery { newsApi.searchNewsDto(any(), any(), any()) } returns mockResponse
+  coEvery { newsApi.getTopHeadlinesDto(any(), any()) } returns mockResponse
+  coEvery { newsDao.getNewsBySection(any()) } returns emptyList()
 
-  val result = repository.searchNews("bitcoin", "en", "publishedAt")
+  repository.getTopHeadlines(NewsSection.TECHNOLOGY, "us")
 
-  assertTrue(result is Resource.Success)
-  assertEquals(1, (result as Resource.Success).data.size)
+  coVerify { newsApi.getTopHeadlinesDto("us", "technology") }
  }
 
  @Test
- fun `getTopHeadlines caches articles after successful API call`() = runTest {
+ fun `getTopHeadlines caches articles with correct section`() = runTest {
   val mockResponse = NewsResponseDto(
    status = "ok",
    totalResults = 1,
    articles = listOf(createMockArticleDto())
   )
   coEvery { newsApi.getTopHeadlinesDto(any(), any()) } returns mockResponse
-  coEvery { newsDao.getAllNews() } returns emptyList()
+  coEvery { newsDao.getNewsBySection(any()) } returns emptyList()
 
-  repository.getTopHeadlines("us", null)
+  repository.getTopHeadlines(NewsSection.HEALTH, "us")
 
-  coVerify { newsDao.clearAllNews() }
-  coVerify { newsDao.insertNews(match { it.size == 1 }) }
+  coVerify {
+   newsDao.insertNews(match { entities ->
+    entities.all { it.section == NewsSection.HEALTH.name }
+   })
+  }
  }
 
  private fun createMockArticleDto() = ArticleDto(
@@ -117,6 +121,7 @@ class NewsRepositoryImplTest {
   url = "https://test.com",
   urlToImage = null,
   publishedAt = "2024-01-01T00:00:00Z",
-  content = "Test Content"
+  content = "Test Content",
+  section = NewsSection.BUSINESS.name
  )
 }

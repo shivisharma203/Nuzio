@@ -7,11 +7,9 @@ import androidx.room.PrimaryKey
 /**
  * Room entity representing a cached news article.
  *
- * This entity exists in the data layer and represents the database
- * table structure, independent of both the domain model and API DTOs.
- *
- * All fields use explicit @ColumnInfo annotations to ensure column
- * names are clearly defined and prevent any naming ambiguities.
+ * Includes section field to enable section-specific caching and querying,
+ * allowing the app to maintain separate caches for different news sections
+ * and support offline access to section-filtered content.
  */
 @Entity(tableName = "news_articles")
 data class NewsArticleEntity(
@@ -45,6 +43,9 @@ data class NewsArticleEntity(
 
     @ColumnInfo(name = "content")
     val content: String?,
+
+    @ColumnInfo(name = "section")
+    val section: String, // NEW - Stores NewsSection enum name
 
     @ColumnInfo(name = "cached_at")
     val cachedAt: Long = System.currentTimeMillis()

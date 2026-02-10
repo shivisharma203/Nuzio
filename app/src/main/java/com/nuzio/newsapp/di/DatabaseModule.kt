@@ -11,23 +11,10 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
-/**
- * Hilt module providing database-related dependencies.
- *
- * This module configures Room database with proper initialization,
- * migration strategies, and DAO provision for repository access.
- */
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
 
-    /**
-     * Provides the Room database instance.
-     *
-     * The database is created as a singleton to ensure only one instance
-     * exists throughout the application lifecycle, preventing multiple
-     * database connections and potential data inconsistencies.
-     */
     @Provides
     @Singleton
     fun provideAppDatabase(
@@ -36,18 +23,12 @@ object DatabaseModule {
         return Room.databaseBuilder(
             context,
             AppDatabase::class.java,
-            "nuzio_database"
+            AppDatabase.DATABASE_NAME
         )
-            .fallbackToDestructiveMigration() // For development; use proper migrations in production
+            .addMigrations(AppDatabase.MIGRATION_2_3) // Add migration
             .build()
     }
 
-    /**
-     * Provides NewsDao for news article database operations.
-     *
-     * The DAO is extracted from the database instance and provided
-     * to repositories that need local data access.
-     */
     @Provides
     @Singleton
     fun provideNewsDao(database: AppDatabase): NewsDao {
