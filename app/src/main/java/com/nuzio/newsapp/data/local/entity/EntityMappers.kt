@@ -1,12 +1,10 @@
 package com.nuzio.newsapp.data.local.entity
 
 import com.nuzio.newsapp.domain.model.NewsArticle
+import com.nuzio.newsapp.features.news.list.NewsSection
 
 /**
- * Converts NewsArticleEntity to NewsArticle domain model.
- *
- * Used when reading cached articles from the database to display
- * in the UI while fresh data loads from the network.
+ * Converts NewsArticleEntity to domain NewsArticle model.
  */
 fun NewsArticleEntity.toDomain(): NewsArticle {
     return NewsArticle(
@@ -26,12 +24,10 @@ fun NewsArticleEntity.toDomain(): NewsArticle {
 }
 
 /**
- * Converts NewsArticle domain model to NewsArticleEntity.
- *
- * Used when caching fresh articles fetched from the network
- * for future offline access.
+ * Converts domain NewsArticle to NewsArticleEntity for database storage.
+ * Requires section parameter to associate article with specific section cache.
  */
-fun NewsArticle.toEntity(): NewsArticleEntity {
+fun NewsArticle.toEntity(section: NewsSection): NewsArticleEntity {
     return NewsArticleEntity(
         id = id,
         sourceId = source.id,
@@ -43,12 +39,21 @@ fun NewsArticle.toEntity(): NewsArticleEntity {
         urlToImage = urlToImage,
         publishedAt = publishedAt,
         content = content,
+        section = section.name, // Store enum name as string
         cachedAt = System.currentTimeMillis()
     )
 }
 
 /**
- * Extension functions for list transformations.
+ * Converts list of entities to domain models.
  */
-fun List<NewsArticleEntity>.toDomain(): List<NewsArticle> = map { it.toDomain() }
-fun List<NewsArticle>.toEntities(): List<NewsArticleEntity> = map { it.toEntity() }
+fun List<NewsArticleEntity>.toDomain(): List<NewsArticle> {
+    return map { it.toDomain() }
+}
+
+/**
+ * Converts list of domain models to entities for a specific section.
+ */
+fun List<NewsArticle>.toEntities(section: NewsSection): List<NewsArticleEntity> {
+    return map { it.toEntity(section) }
+}

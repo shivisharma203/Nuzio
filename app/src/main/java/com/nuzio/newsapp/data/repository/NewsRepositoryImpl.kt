@@ -9,52 +9,62 @@ import com.nuzio.newsapp.data.remote.NewsApiService
 import com.nuzio.newsapp.data.remote.dto.toDomain
 import com.nuzio.newsapp.domain.model.NewsArticle
 import com.nuzio.newsapp.domain.repository.NewsRepository
+import com.nuzio.newsapp.features.news.list.NewsSection
 import timber.log.Timber
 import javax.inject.Inject
 
+/**
+ * Implementation of NewsRepository with section-based caching strategy.
+ *
+ * Implements offline-first pattern where each section maintains its own
+ * cache, enabling section-specific offline access and reducing unnecessary
+ * network requests when switching between sections.
+ */
 class NewsRepositoryImpl @Inject constructor(
     private val newsApi: NewsApiService,
     private val newsDao: NewsDao
 ) : NewsRepository {
 
     override suspend fun getTopHeadlines(
-        country: String,
-        category: String?
+        section: NewsSection,
+        country: String
     ): Resource<List<NewsArticle>> {
-        Timber.d("📡 Fetching top headlines (country: $country, category: ${category ?: "all"})")
+        Timber.d("📡 Fetching headlines for section: ${section.displayName}, country: $country")
 
+        // Attempt to load cached articles for this section
         val cachedArticles = try {
-            newsDao.getAllNews().toDomain()
+            newsDao.getNewsBySection(section.name).toDomain()
         } catch (e: Exception) {
-            Timber.e(e, "Failed to read from cache")
+            Timber.e(e, "Failed to read section cache for ${section.displayName}")
             emptyList()
         }
 
         if (cachedArticles.isNotEmpty()) {
-            Timber.d("💾 Found ${cachedArticles.size} cached articles available for fallback")
+            Timber.d("💾 Found ${cachedArticles.size} cached articles for ${section.displayName}")
         }
 
+        // Fetch fresh articles from network
         return when (val result = safeApiCall {
-            // AuthInterceptor automatically adds API key
             val response = newsApi.getTopHeadlinesDto(
                 country = country,
-                category = category
+                category = section.apiCategory
             )
             response.toDomain()
         }) {
             is Resource.Success -> {
-                Timber.d("✅ Received ${result.data.size} fresh articles from API")
-                updateCache(result.data)
+                Timber.d("✅ Received ${result.data.size} fresh articles for ${section.displayName}")
+                updateSectionCache(section, result.data)
                 result
             }
 
             is Resource.Error -> {
+                // Fall back to cached articles if available
                 if (cachedArticles.isNotEmpty()) {
-                    Timber.w("⚠️ Network request failed but returning ${cachedArticles.size} cached articles")
+                    Timber.w("⚠️ Network failed for ${section.displayName} but returning ${cachedArticles.size} cached articles")
                     Timber.w("Network error: ${result.message}")
                     Resource.Success(cachedArticles)
                 } else {
-                    Timber.e(result.exception, "❌ Network failed and no cache available")
+                    Timber.e(result.exception, "❌ Network failed for ${section.displayName} and no cache available")
                     result
                 }
             }
@@ -70,7 +80,6 @@ class NewsRepositoryImpl @Inject constructor(
     ): Resource<List<NewsArticle>> = safeApiCall {
         Timber.d("🔍 Searching news: query='$query', language=$language, sortBy=$sortBy")
 
-        // AuthInterceptor automatically adds API key
         val response = newsApi.searchNewsDto(
             query = query,
             language = language,
@@ -83,13 +92,27 @@ class NewsRepositoryImpl @Inject constructor(
         articles
     }
 
-    private suspend fun updateCache(articles: List<NewsArticle>) {
+    /**
+     * Updates the cache for a specific section.
+     *
+     * Clears existing section cache and replaces with fresh articles,
+     * enabling section-specific offline access while preventing cache
+     * pollution from mixing articles across different sections.
+     *
+     * @param section The section whose cache should be updated
+     * @param articles Fresh articles to cache for this section
+     */
+    private suspend fun updateSectionCache(section: NewsSection, articles: List<NewsArticle>) {
         try {
-            newsDao.clearAllNews()
-            newsDao.insertNews(articles.toEntities())
-            Timber.d("💾 Successfully cached ${articles.size} articles")
+            // Clear existing articles for this section
+            newsDao.clearSection(section.name)
+
+            // Insert fresh articles with section association
+            newsDao.insertNews(articles.toEntities(section))
+
+            Timber.d("💾 Successfully cached ${articles.size} articles for ${section.displayName}")
         } catch (e: Exception) {
-            Timber.e(e, "❌ Failed to update cache: ${e.message}")
+            Timber.e(e, "❌ Failed to update cache for ${section.displayName}: ${e.message}")
         }
     }
 }
