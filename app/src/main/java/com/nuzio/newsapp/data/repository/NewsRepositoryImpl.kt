@@ -31,7 +31,6 @@ class NewsRepositoryImpl @Inject constructor(
     ): Resource<List<NewsArticle>> {
         Timber.d("📡 Fetching headlines for section: ${section.displayName}, country: $country")
 
-        // Attempt to load cached articles for this section
         val cachedArticles = try {
             newsDao.getNewsBySection(section.name).toDomain()
         } catch (e: Exception) {
@@ -43,7 +42,6 @@ class NewsRepositoryImpl @Inject constructor(
             Timber.d("💾 Found ${cachedArticles.size} cached articles for ${section.displayName}")
         }
 
-        // Fetch fresh articles from network
         return when (val result = safeApiCall {
             val response = newsApi.getTopHeadlinesDto(
                 country = country,
@@ -58,7 +56,6 @@ class NewsRepositoryImpl @Inject constructor(
             }
 
             is Resource.Error -> {
-                // Fall back to cached articles if available
                 if (cachedArticles.isNotEmpty()) {
                     Timber.w("⚠️ Network failed for ${section.displayName} but returning ${cachedArticles.size} cached articles")
                     Timber.w("Network error: ${result.message}")
@@ -92,24 +89,10 @@ class NewsRepositoryImpl @Inject constructor(
         articles
     }
 
-    /**
-     * Updates the cache for a specific section.
-     *
-     * Clears existing section cache and replaces with fresh articles,
-     * enabling section-specific offline access while preventing cache
-     * pollution from mixing articles across different sections.
-     *
-     * @param section The section whose cache should be updated
-     * @param articles Fresh articles to cache for this section
-     */
     private suspend fun updateSectionCache(section: NewsSection, articles: List<NewsArticle>) {
         try {
-            // Clear existing articles for this section
             newsDao.clearSection(section.name)
-
-            // Insert fresh articles with section association
             newsDao.insertNews(articles.toEntities(section))
-
             Timber.d("💾 Successfully cached ${articles.size} articles for ${section.displayName}")
         } catch (e: Exception) {
             Timber.e(e, "❌ Failed to update cache for ${section.displayName}: ${e.message}")

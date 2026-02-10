@@ -17,12 +17,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.nuzio.newsapp.core.ui.components.EnhancedArticleCard
 import com.nuzio.newsapp.domain.model.NewsArticle
 import com.nuzio.newsapp.features.news.list.NewsListEvent
 import com.nuzio.newsapp.features.news.list.NewsListViewModel
-import com.nuzio.newsapp.features.news.list.components.EnhancedArticleCard
 import com.nuzio.newsapp.features.news.list.components.SectionTabRow
-import kotlinx.coroutines.delay
+
 
 /**
  * Main news list screen with section-based navigation.
