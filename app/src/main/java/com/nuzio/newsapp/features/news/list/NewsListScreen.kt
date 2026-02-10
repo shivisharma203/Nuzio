@@ -1,4 +1,4 @@
-package com.nuzio.newsapp.ui.screens
+package com.nuzio.newsapp.features.news.list
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
@@ -19,9 +19,7 @@ import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.nuzio.newsapp.core.ui.components.EnhancedArticleCard
 import com.nuzio.newsapp.domain.model.NewsArticle
-import com.nuzio.newsapp.features.news.list.NewsListEvent
-import com.nuzio.newsapp.features.news.list.NewsListViewModel
-import com.nuzio.newsapp.features.news.list.components.SectionTabRow
+import com.nuzio.newsapp.features.news.compnents.SectionTabRow
 
 
 /**

@@ -1,4 +1,4 @@
-package com.nuzio.newsapp.features.news.list
+package com.nuzio.newsapp.features.news.compnents
 
 import androidx.compose.animation.animateColorAsState
 
@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.nuzio.newsapp.features.news.list.NewsSection
+
 
 /**
  * Scrollable tab row displaying news sections with Material Design 3 styling.
