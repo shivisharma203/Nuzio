@@ -1,11 +1,15 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.kotlin.hilt)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kotlin.kapt)
+    alias(libs.plugins.hilt)
     alias(libs.plugins.google.services)
-
-    kotlin("kapt")
+    alias(libs.plugins.firebase.crashlytics)
 }
 
 android {
@@ -18,112 +22,180 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
+        testInstrumentationRunner = "com.nuzio.newsapp.HiltTestRunner"
+       // testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        val localProperties = Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localProperties.load(FileInputStream(localPropertiesFile))
+        }
+
+        val apiKey = localProperties.getProperty("NEWS_API_KEY") ?: "DEMO_KEY_PLEASE_ADD_YOUR_KEY"
+        buildConfigField("String", "NEWS_API_KEY", "\"$apiKey\"")
+        buildConfigField("String", "API_BASE_URL", "\"https://newsapi.org/v2/\"")
     }
 
     buildTypes {
+        debug {
+            isDebuggable = true
+            //noinspection WrongGradleMethod
+            firebaseCrashlytics {
+                mappingFileUploadEnabled = true
+                nativeSymbolUploadEnabled = true
+            }
+        }
+
         release {
             isMinifyEnabled = false
+            isShrinkResources = false
+            //noinspection WrongGradleMethod
+            firebaseCrashlytics {
+                mappingFileUploadEnabled = true
+                nativeSymbolUploadEnabled = true
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     kotlinOptions {
         jvmTarget = "11"
     }
+
     buildFeatures {
         compose = true
         buildConfig = true
     }
+
     kapt {
         correctErrorTypes = true
+    }
+
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/LICENSE.md"
+            excludes += "/META-INF/LICENSE-notice.md"
+        }
     }
 }
 
 dependencies {
+    // ========================================================================================
+    // AndroidX Core
+    // ========================================================================================
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.appcompat)
 
-    // Compose BOM manages Compose versions including Material3
+    // ========================================================================================
+    // Compose
+    // ========================================================================================
     implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.androidx.navigation.compose)
 
-    // Compose UI & Material3 without explicit versions (BOM controls)
-    implementation(libs.androidx.ui)
-    implementation(libs.androidx.ui.graphics)
-    implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
-
+    // ========================================================================================
+    // Dependency Injection
+    // ========================================================================================
+    implementation(libs.hilt.android)
+    implementation(libs.hilt.navigation.compose)
+    implementation(libs.core.ktx)
+    implementation(libs.androidx.junit.ktx)
+    androidTestImplementation(libs.androidx.arch.core.testing)
     kapt(libs.hilt.compiler)
-    implementation(libs.hilt.core)
 
+    // ========================================================================================
+    // Networking & Serialization
+    // ========================================================================================
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.kotlinx.serialization)
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging.interceptor)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.kotlinx.coroutines.android)
+
+    // ========================================================================================
+    // Image Loading
+    // ========================================================================================
+    implementation(libs.coil.compose)
+
+    // ========================================================================================
+    // Database
+    // ========================================================================================
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    kapt(libs.room.compiler)
+
+    // ========================================================================================
+    // Firebase
+    // ========================================================================================
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth.ktx)
-    implementation(libs.playServicesAuth)
+    implementation(libs.firebase.analytics.ktx)
+    implementation(libs.firebase.firestore.ktx)
+    implementation(libs.firebase.crashlytics.ktx)
+    implementation(libs.firebase.crashlytics.ndk)
 
-    implementation("androidx.compose.material:material-icons-extended")  // Material icons (Material2 compatible icons)
+    // ========================================================================================
+    // Authentication
+    // ========================================================================================
+    implementation(libs.play.services.auth)
+    implementation(libs.facebook.login)
 
-    // Lifecycle ViewModel Compose and Hilt Navigation Compose
-    implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
+    // ========================================================================================
+    // Utilities
+    // ========================================================================================
+    implementation(libs.timber)
+    implementation(libs.accompanist.swiperefresh)
+    // ========================================================================================
+    // Database & Preferences
+    // ========================================================================================
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    kapt(libs.room.compiler)
+    implementation(libs.datastore.preferences)
+    // ========================================================================================
+    // Debug Tools
+    // ========================================================================================
+    debugImplementation(libs.leakcanary)
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 
-    // Navigation Compose
-    implementation("androidx.navigation:navigation-compose:2.8.0")
+    // ========================================================================================
+    // Testing
+    // ========================================================================================
 
-    // Coil for image loading in Compose
-    implementation("io.coil-kt:coil-compose:2.5.0")
-
-    // ViewModel Compose integration
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
-
-    // Retrofit + Moshi (networking + JSON parsing)
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation("com.squareup.moshi:moshi-kotlin:1.15.0")
-
-    // Room persistence library
-    implementation("androidx.room:room-runtime:2.6.1")
-    kapt("androidx.room:room-compiler:2.6.1")
-    implementation("androidx.room:room-ktx:2.6.1")
-
-    // Paging 3 library with Compose integration
-    implementation("androidx.paging:paging-compose:1.0.0-alpha18")
-    implementation("androidx.paging:paging-runtime:3.1.1")
-
-    // Dagger Hilt dependencies
-    implementation("com.google.dagger:hilt-android:2.46.1")
-    kapt("com.google.dagger:hilt-compiler:2.46.1")
-
-    // Kotlin Coroutines for asynchronous programming
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
-
-    // Firebase Firestore and Analytics
-    implementation("com.google.firebase:firebase-firestore-ktx")
-    implementation("com.google.firebase:firebase-analytics")
-
-    // Facebook Login SDK
-    implementation("com.facebook.android:facebook-login:16.3.0")
-
-    // Accompanist Navigation Animation
-    implementation("com.google.accompanist:accompanist-navigation-animation:0.30.1")
-
-    // Testing dependencies
     testImplementation(libs.junit)
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
-    testImplementation("io.mockk:mockk:1.13.7")
-    testImplementation("app.cash.turbine:turbine:0.12.1")
-
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+    testImplementation(libs.junit.jupiter.api)
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.turbine)  // Ensure this line exists
+    testImplementation(libs.androidx.arch.core.testing)
+    testImplementation(libs.robolectric)
+    testRuntimeOnly(libs.junit.jupiter.engine)
+    androidTestImplementation(libs.androidx.test.junit)
+    androidTestImplementation(libs.androidx.test.espresso.core)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.core)
+    androidTestImplementation(libs.mockk.android)
+    androidTestImplementation(libs.hilt.android.testing)
+    androidTestImplementation(libs.room.testing)
     androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.ui.test.junit4)
-
-    debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    kaptAndroidTest(libs.hilt.compiler)
 }
