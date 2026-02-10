@@ -5,6 +5,8 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.facebook.CallbackManager
 import com.nuzio.newsapp.HiltTestActivity
+import com.nuzio.newsapp.navigation.LoginRoute
+import com.nuzio.newsapp.navigation.NewsListRoute
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import org.junit.Before
@@ -43,8 +45,11 @@ class AuthScreenTest {
     fun authScreenDisplaysInitialLoginState() {
         composeTestRule.setContent {
             AuthScreen(
-                facebookCallbackManager = callbackManager,
-                onSignInSuccess = {}
+                onNavigateToNewsList = {
+                    navController.navigate(NewsListRoute) {
+                        popUpTo(LoginRoute) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -59,8 +64,11 @@ class AuthScreenTest {
     fun authScreenDisplaysAllFormFields() {
         composeTestRule.setContent {
             AuthScreen(
-                facebookCallbackManager = callbackManager,
-                onSignInSuccess = {}
+                onNavigateToNewsList = {
+                    navController.navigate(NewsListRoute) {
+                        popUpTo(LoginRoute) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -75,8 +83,11 @@ class AuthScreenTest {
     fun authScreenDisplaysAuthenticationButtons() {
         composeTestRule.setContent {
             AuthScreen(
-                facebookCallbackManager = callbackManager,
-                onSignInSuccess = {}
+                onNavigateToNewsList = {
+                    navController.navigate(NewsListRoute) {
+                        popUpTo(LoginRoute) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -92,8 +103,11 @@ class AuthScreenTest {
     fun emailFieldAcceptsAndDisplaysUserInput() {
         composeTestRule.setContent {
             AuthScreen(
-                facebookCallbackManager = callbackManager,
-                onSignInSuccess = {}
+                onNavigateToNewsList = {
+                    navController.navigate(NewsListRoute) {
+                        popUpTo(LoginRoute) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -109,8 +123,11 @@ class AuthScreenTest {
     fun passwordFieldAcceptsUserInput() {
         composeTestRule.setContent {
             AuthScreen(
-                facebookCallbackManager = callbackManager,
-                onSignInSuccess = {}
+                onNavigateToNewsList = {
+                    navController.navigate(NewsListRoute) {
+                        popUpTo(LoginRoute) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -127,8 +144,11 @@ class AuthScreenTest {
     fun loginButtonRemainsDisabledWithEmptyFields() {
         composeTestRule.setContent {
             AuthScreen(
-                facebookCallbackManager = callbackManager,
-                onSignInSuccess = {}
+                onNavigateToNewsList = {
+                    navController.navigate(NewsListRoute) {
+                        popUpTo(LoginRoute) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -142,8 +162,11 @@ class AuthScreenTest {
     fun loginButtonBecomesEnabledWithValidInput() {
         composeTestRule.setContent {
             AuthScreen(
-                facebookCallbackManager = callbackManager,
-                onSignInSuccess = {}
+                onNavigateToNewsList = {
+                    navController.navigate(NewsListRoute) {
+                        popUpTo(LoginRoute) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -161,8 +184,11 @@ class AuthScreenTest {
     fun toggleButtonSwitchesToSignUpMode() {
         composeTestRule.setContent {
             AuthScreen(
-                facebookCallbackManager = callbackManager,
-                onSignInSuccess = {}
+                onNavigateToNewsList = {
+                    navController.navigate(NewsListRoute) {
+                        popUpTo(LoginRoute) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -180,8 +206,11 @@ class AuthScreenTest {
     fun toggleButtonSwitchesBackToLoginMode() {
         composeTestRule.setContent {
             AuthScreen(
-                facebookCallbackManager = callbackManager,
-                onSignInSuccess = {}
+                onNavigateToNewsList = {
+                    navController.navigate(NewsListRoute) {
+                        popUpTo(LoginRoute) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -201,8 +230,11 @@ class AuthScreenTest {
     fun buttonTextChangesWithAuthenticationMode() {
         composeTestRule.setContent {
             AuthScreen(
-                facebookCallbackManager = callbackManager,
-                onSignInSuccess = {}
+                onNavigateToNewsList = {
+                    navController.navigate(NewsListRoute) {
+                        popUpTo(LoginRoute) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -220,8 +252,11 @@ class AuthScreenTest {
     fun forgotPasswordButtonOpensResetDialog() {
         composeTestRule.setContent {
             AuthScreen(
-                facebookCallbackManager = callbackManager,
-                onSignInSuccess = {}
+                onNavigateToNewsList = {
+                    navController.navigate(NewsListRoute) {
+                        popUpTo(LoginRoute) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -239,8 +274,11 @@ class AuthScreenTest {
     fun forgotPasswordDialogDisplaysEmailField() {
         composeTestRule.setContent {
             AuthScreen(
-                facebookCallbackManager = callbackManager,
-                onSignInSuccess = {}
+                onNavigateToNewsList = {
+                    navController.navigate(NewsListRoute) {
+                        popUpTo(LoginRoute) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -258,8 +296,11 @@ class AuthScreenTest {
     fun forgotPasswordDialogAcceptsEmailInput() {
         composeTestRule.setContent {
             AuthScreen(
-                facebookCallbackManager = callbackManager,
-                onSignInSuccess = {}
+                onNavigateToNewsList = {
+                    navController.navigate(NewsListRoute) {
+                        popUpTo(LoginRoute) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -278,8 +319,11 @@ class AuthScreenTest {
     fun forgotPasswordDialogSendButtonDisabledWithEmptyEmail() {
         composeTestRule.setContent {
             AuthScreen(
-                facebookCallbackManager = callbackManager,
-                onSignInSuccess = {}
+                onNavigateToNewsList = {
+                    navController.navigate(NewsListRoute) {
+                        popUpTo(LoginRoute) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -295,8 +339,11 @@ class AuthScreenTest {
     fun forgotPasswordDialogSendButtonEnabledWithValidEmail() {
         composeTestRule.setContent {
             AuthScreen(
-                facebookCallbackManager = callbackManager,
-                onSignInSuccess = {}
+                onNavigateToNewsList = {
+                    navController.navigate(NewsListRoute) {
+                        popUpTo(LoginRoute) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -315,8 +362,11 @@ class AuthScreenTest {
     fun forgotPasswordDialogDismissesOnCancel() {
         composeTestRule.setContent {
             AuthScreen(
-                facebookCallbackManager = callbackManager,
-                onSignInSuccess = {}
+                onNavigateToNewsList = {
+                    navController.navigate(NewsListRoute) {
+                        popUpTo(LoginRoute) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -335,8 +385,11 @@ class AuthScreenTest {
     fun forgotPasswordDialogDismissesOnSendEmail() {
         composeTestRule.setContent {
             AuthScreen(
-                facebookCallbackManager = callbackManager,
-                onSignInSuccess = {}
+                onNavigateToNewsList = {
+                    navController.navigate(NewsListRoute) {
+                        popUpTo(LoginRoute) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -358,8 +411,11 @@ class AuthScreenTest {
     fun socialLoginButtonsAreAlwaysVisible() {
         composeTestRule.setContent {
             AuthScreen(
-                facebookCallbackManager = callbackManager,
-                onSignInSuccess = {}
+                onNavigateToNewsList = {
+                    navController.navigate(NewsListRoute) {
+                        popUpTo(LoginRoute) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -373,8 +429,11 @@ class AuthScreenTest {
     fun socialLoginButtonsRemainVisibleInSignUpMode() {
         composeTestRule.setContent {
             AuthScreen(
-                facebookCallbackManager = callbackManager,
-                onSignInSuccess = {}
+                onNavigateToNewsList = {
+                    navController.navigate(NewsListRoute) {
+                        popUpTo(LoginRoute) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -391,8 +450,11 @@ class AuthScreenTest {
     fun dividerSeparatesEmailAndSocialAuthentication() {
         composeTestRule.setContent {
             AuthScreen(
-                facebookCallbackManager = callbackManager,
-                onSignInSuccess = {}
+                onNavigateToNewsList = {
+                    navController.navigate(NewsListRoute) {
+                        popUpTo(LoginRoute) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -406,8 +468,11 @@ class AuthScreenTest {
     fun formFieldsClearWhenSwitchingModes() {
         composeTestRule.setContent {
             AuthScreen(
-                facebookCallbackManager = callbackManager,
-                onSignInSuccess = {}
+                onNavigateToNewsList = {
+                    navController.navigate(NewsListRoute) {
+                        popUpTo(LoginRoute) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -424,8 +489,11 @@ class AuthScreenTest {
     fun allButtonsDisabledDuringLoading() {
         composeTestRule.setContent {
             AuthScreen(
-                facebookCallbackManager = callbackManager,
-                onSignInSuccess = {}
+                onNavigateToNewsList = {
+                    navController.navigate(NewsListRoute) {
+                        popUpTo(LoginRoute) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -440,8 +508,11 @@ class AuthScreenTest {
     fun screenMaintainsStateAcrossRecomposition() {
         composeTestRule.setContent {
             AuthScreen(
-                facebookCallbackManager = callbackManager,
-                onSignInSuccess = {}
+                onNavigateToNewsList = {
+                    navController.navigate(NewsListRoute) {
+                        popUpTo(LoginRoute) { inclusive = true }
+                    }
+                }
             )
         }
 
