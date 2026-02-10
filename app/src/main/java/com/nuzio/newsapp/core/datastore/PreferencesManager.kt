@@ -15,6 +15,7 @@ import javax.inject.Singleton
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "nuzio_preferences")
 
+
 /**
  * Data source managing application preferences through DataStore.
  *
