@@ -23,7 +23,8 @@ abstract class AppDatabase : RoomDatabase() {
 
 
 
-        val MIGRATION_3_4 = object : Migration(3, 4) {
+        val MIGRATION_3_4 = object : Migration(3, 4)
+        {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL(
                     """
