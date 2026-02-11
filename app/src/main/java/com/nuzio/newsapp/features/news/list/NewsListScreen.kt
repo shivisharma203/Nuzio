@@ -36,6 +36,7 @@ import com.nuzio.newsapp.features.news.compnents.SectionTabRow
 @Composable
 fun NewsListScreen(
     onArticleClick: (NewsArticle) -> Unit,
+    onSettingsClick: () -> Unit = {},
     viewModel: NewsListViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -55,7 +56,8 @@ fun NewsListScreen(
                 },
                 onSearchClear = {
                     viewModel.onEvent(NewsListEvent.ClearSearch)
-                }
+                },
+                onSettingsClick = onSettingsClick
             )
         }
     ) { paddingValues ->
@@ -133,7 +135,8 @@ private fun NewsListTopBar(
     searchQuery: String,
     isSearchActive: Boolean,
     onSearchQueryChanged: (String) -> Unit,
-    onSearchClear: () -> Unit
+    onSearchClear: () -> Unit,
+    onSettingsClick: () -> Unit
 ) {
     var showSearchBar by remember { mutableStateOf(false) }
 
@@ -172,6 +175,9 @@ private fun NewsListTopBar(
             if (!showSearchBar) {
                 IconButton(onClick = { showSearchBar = true }) {
                     Icon(Icons.Default.Search, contentDescription = "Search")
+                }
+                IconButton(onClick = onSettingsClick) {
+                    Icon(Icons.Default.Settings, contentDescription = "Settings")
                 }
             }
         }

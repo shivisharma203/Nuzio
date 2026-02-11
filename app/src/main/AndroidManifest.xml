@@ -4,6 +4,9 @@
 
     <!-- Required Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <!-- Remove Ad ID if not needed -->
     <uses-permission
@@ -76,6 +79,24 @@
             android:authorities="com.facebook.app.FacebookContentProvider1240593017808911"
             android:exported="true" />
 
+        <!-- Firebase Cloud Messaging Service -->
+        <service
+            android:name=".core.service.NuzioFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <!-- Default notification channel for FCM -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="@string/default_notification_channel_id" />
+
+        <!-- Disable automatic initialization of FCM (we'll do it manually) -->
+        <meta-data
+            android:name="firebase_messaging_auto_init_enabled"
+            android:value="false" />
     </application>
 
 </manifest>

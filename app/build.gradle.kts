@@ -150,6 +150,7 @@ dependencies {
     implementation(libs.firebase.firestore.ktx)
     implementation(libs.firebase.crashlytics.ktx)
     implementation(libs.firebase.crashlytics.ndk)
+    implementation(libs.firebase.messaging)
 
     // ========================================================================================
     // Authentication
