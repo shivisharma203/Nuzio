@@ -1,54 +1,52 @@
 package com.nuzio.newsapp
 
-import android.content.Intent
+import android.Manifest
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.ui.Modifier
+import androidx.activity.result.contract.ActivityResultContracts
+import com.facebook.FacebookSdk
 import com.facebook.CallbackManager
-import com.google.firebase.Firebase
-import com.google.firebase.FirebaseApp
-import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.analytics.analytics
 import com.nuzio.newsapp.core.theme.NuzioTheme
 import com.nuzio.newsapp.navigation.AppNavGraph
+
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    private val callbackManager: CallbackManager by lazy {
-        CallbackManager.Factory.create()
-    }
+    private lateinit var facebookCallbackManager: CallbackManager
 
-    private lateinit var firebaseAnalytics: FirebaseAnalytics
+    // 👇 ADD NOTIFICATION PERMISSION LAUNCHER
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            Timber.d("Notification permission granted")
+        } else {
+            Timber.d("Notification permission denied")
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        FirebaseApp.initializeApp(applicationContext)
-        firebaseAnalytics = Firebase.analytics
+        FacebookSdk.sdkInitialize(applicationContext)
+        facebookCallbackManager = CallbackManager.Factory.create()
 
-        enableEdgeToEdge()
+        // 👇 REQUEST NOTIFICATION PERMISSION ON ANDROID 13+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
 
         setContent {
             NuzioTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { paddingValues ->
-                    AppNavGraph(
-                        modifier = Modifier.padding(paddingValues),
-                        facebookCallbackManager = callbackManager
-                    )
-                }
+                AppNavGraph(
+                    facebookCallbackManager = facebookCallbackManager
+                )
             }
         }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        callbackManager.onActivityResult(requestCode, resultCode, data)
     }
 }

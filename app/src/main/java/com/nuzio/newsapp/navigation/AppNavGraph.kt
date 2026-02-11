@@ -18,7 +18,7 @@ import com.nuzio.newsapp.features.auth.AuthScreen
 import com.nuzio.newsapp.features.auth.AuthViewModel
 import com.nuzio.newsapp.features.news.detail.NewsDetailScreen
 import com.nuzio.newsapp.features.news.list.NewsListScreen
-
+import com.nuzio.newsapp.features.settings.NotificationSettingsScreen
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -32,6 +32,10 @@ object NewsListRoute
 
 @Serializable
 data class NewsDetailRoute(val articleJson: String)
+
+// 👇 ADD THIS NEW ROUTE
+@Serializable
+object NotificationSettingsRoute
 
 @Composable
 fun AppNavGraph(
@@ -76,6 +80,11 @@ fun AppNavGraph(
                     Firebase.crashlytics.log("Article clicked: ${article.title}")
                     val articleJson = Json.encodeToString(article)
                     navController.navigate(NewsDetailRoute(articleJson))
+                },
+                // 👇 ADD THIS PARAMETER
+                onSettingsClick = {
+                    Firebase.crashlytics.log("Settings clicked")
+                    navController.navigate(NotificationSettingsRoute)
                 }
             )
         }
@@ -102,6 +111,17 @@ fun AppNavGraph(
                     navController.navigateUp()
                 }
             }
+        }
+
+        // 👇 ADD THIS NEW COMPOSABLE
+        composable<NotificationSettingsRoute> {
+            Firebase.crashlytics.log("Screen: Notification Settings")
+
+            NotificationSettingsScreen(
+                onBackClick = {
+                    navController.navigateUp()
+                }
+            )
         }
     }
 

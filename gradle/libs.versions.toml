@@ -149,7 +149,7 @@ firebase-analytics-ktx = { group = "com.google.firebase", name = "firebase-analy
 firebase-firestore-ktx = { group = "com.google.firebase", name = "firebase-firestore-ktx" }
 firebase-crashlytics-ktx = { group = "com.google.firebase", name = "firebase-crashlytics-ktx" }
 firebase-crashlytics-ndk = { group = "com.google.firebase", name = "firebase-crashlytics-ndk" }
-
+firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging-ktx" }
 # ========================================================================================
 # Authentication
 # ========================================================================================
