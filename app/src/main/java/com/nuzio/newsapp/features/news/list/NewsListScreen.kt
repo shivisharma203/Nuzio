@@ -20,6 +20,7 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.nuzio.newsapp.core.ui.components.EnhancedArticleCard
 import com.nuzio.newsapp.domain.model.NewsArticle
 import com.nuzio.newsapp.features.news.compnents.SectionTabRow
+import com.nuzio.newsapp.features.notifications.components.NotificationIconWithBadge
 
 
 /**
@@ -36,6 +37,7 @@ import com.nuzio.newsapp.features.news.compnents.SectionTabRow
 @Composable
 fun NewsListScreen(
     onArticleClick: (NewsArticle) -> Unit,
+    onNotificationIconClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
     viewModel: NewsListViewModel = hiltViewModel()
 ) {
@@ -57,6 +59,7 @@ fun NewsListScreen(
                 onSearchClear = {
                     viewModel.onEvent(NewsListEvent.ClearSearch)
                 },
+                onNotificationIconClick = onNotificationIconClick,
                 onSettingsClick = onSettingsClick
             )
         }
@@ -136,6 +139,7 @@ private fun NewsListTopBar(
     isSearchActive: Boolean,
     onSearchQueryChanged: (String) -> Unit,
     onSearchClear: () -> Unit,
+    onNotificationIconClick: () -> Unit,
     onSettingsClick: () -> Unit
 ) {
     var showSearchBar by remember { mutableStateOf(false) }
@@ -176,6 +180,10 @@ private fun NewsListTopBar(
                 IconButton(onClick = { showSearchBar = true }) {
                     Icon(Icons.Default.Search, contentDescription = "Search")
                 }
+                NotificationIconWithBadge(
+                    onClick = onNotificationIconClick
+                )
+
                 IconButton(onClick = onSettingsClick) {
                     Icon(Icons.Default.Settings, contentDescription = "Settings")
                 }
